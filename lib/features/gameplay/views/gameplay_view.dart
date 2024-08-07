@@ -107,7 +107,9 @@ class _GameplayViewState extends State<GameplayView> {
                         child: CustButton(
                           text: "دخل",
                           func: () {
+                            if (gCubit.guessesRemaining>0){
                             _handleKeyPress("دخل");
+                            }
                           },
                         ),
                       ),
