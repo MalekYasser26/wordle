@@ -8,7 +8,7 @@ class GuessRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 100,
+      height: 80,
       child: Center(
         child: ListView.separated(
           shrinkWrap: true,
