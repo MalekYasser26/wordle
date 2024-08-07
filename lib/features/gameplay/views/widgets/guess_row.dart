@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:wordle/constants/constants.dart';
 
 class GuessRow extends StatelessWidget {
-  const GuessRow({super.key});
+  final List<String> guess;
+
+  const GuessRow({super.key, required this.guess});
 
   @override
   Widget build(BuildContext context) {
@@ -11,20 +14,33 @@ class GuessRow extends StatelessWidget {
       height: 80,
       child: Center(
         child: ListView.separated(
+          reverse: true,
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
           itemBuilder: (context, index) {
             return Center(
-              child: SvgPicture.asset(
-                AssetImages.guessGrey,
-                height: getResponsiveSize(context, size: 50),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SvgPicture.asset(
+                    AssetImages.guessGrey,
+                    height: getResponsiveSize(context, size: 50),
+                  ),
+                  Text(
+                    guess[index],
+                    style: GoogleFonts.montserrat(
+                      fontSize: getResponsiveSize(context, size: 20),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             );
           },
           separatorBuilder: (context, index) {
             return const SizedBox(width: 10);
           },
-          itemCount: 5,
+          itemCount: guess.length,
         ),
       ),
     );
