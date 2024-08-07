@@ -5,8 +5,8 @@ import 'package:wordle/constants/constants.dart';
 
 class GuessRow extends StatelessWidget {
   final List<String> guess;
-
-  const GuessRow({super.key, required this.guess});
+  final String containerColor;
+  const GuessRow({super.key, required this.guess, required this.containerColor});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class GuessRow extends StatelessWidget {
                 alignment: Alignment.center,
                 children: [
                   SvgPicture.asset(
-                    AssetImages.guessGrey,
+                    containerColor,
                     height: getResponsiveSize(context, size: 50),
                   ),
                   Text(

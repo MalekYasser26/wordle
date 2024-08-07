@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wordle/constants/constants.dart';
+import 'package:wordle/features/gameplay/game_logic_cubit.dart';
 import 'package:wordle/features/gameplay/views/widgets/arabic_keyboard.dart';
 import 'package:wordle/features/gameplay/views/widgets/cust_button.dart';
 import 'package:wordle/features/gameplay/views/widgets/guess_row.dart';
@@ -13,26 +15,27 @@ class GameplayView extends StatefulWidget {
 }
 
 class _GameplayViewState extends State<GameplayView> {
-  final String _correctAnswer = "صباح"; // Example correct answer
-  List<List<String>> _guesses = List.generate(6, (_) => List.filled(5, ''));
-  int _currentGuessIndex = 0;
+  final String _correctAnswer = "صباحو"; // Example correct answer
   int _currentLetterIndex = 0;
 
   void _handleKeyPress(String key) {
+    final gCubit = context.read<GameLogicCubit>();
     setState(() {
       if (key == "امسح") {
         if (_currentLetterIndex > 0) {
           _currentLetterIndex--;
-          _guesses[_currentGuessIndex][_currentLetterIndex] = '';
+          gCubit.updateGuess(6 - gCubit.guessesRemaining, _currentLetterIndex, '');
         }
       } else if (key == "دخل") {
         if (_currentLetterIndex == 5) {
-          // Validate the guess
           _validateGuess();
+          gCubit.submitGuess();
+          gCubit.resetCurrentGuess(6 - gCubit.guessesRemaining); // Reset current guess after submission
+          _currentLetterIndex = 0;
         }
       } else {
         if (_currentLetterIndex < 5) {
-          _guesses[_currentGuessIndex][_currentLetterIndex] = key;
+          gCubit.updateGuess(6 - gCubit.guessesRemaining, _currentLetterIndex, key);
           _currentLetterIndex++;
         }
       }
@@ -40,22 +43,19 @@ class _GameplayViewState extends State<GameplayView> {
   }
 
   void _validateGuess() {
-    String currentGuess = _guesses[_currentGuessIndex].join();
+    final gCubit = context.read<GameLogicCubit>();
+    String currentGuess = gCubit.guesses[6 - gCubit.guessesRemaining].join();
     if (currentGuess == _correctAnswer) {
-      // The guess is correct
-      // Handle the win condition
+      print("Correct guess: $currentGuess");
     } else {
-      if (_currentGuessIndex < 5) {
-        _currentGuessIndex++;
-        _currentLetterIndex = 0;
-      } else {
-        // Handle the lose condition
-      }
+      print("Incorrect guess: $currentGuess");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final gCubit = context.read<GameLogicCubit>();
+
     return Scaffold(
       appBar: AppBar(
         leading: Icon(Icons.menu, size: getResponsiveSize(context, size: 30)),
@@ -68,49 +68,65 @@ class _GameplayViewState extends State<GameplayView> {
         ),
         centerTitle: true,
       ),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) {
-                  return GuessRow(guess: _guesses[index]);
-                },
-                itemCount: 6,
-              ),
+      body: BlocBuilder<GameLogicCubit, GameLogicState>(
+        builder: (context, state) {
+          return Center(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return GuessRow(
+                      containerColor: AssetImages.guessGreen,
+                      guess: gCubit.guessesEvaluated[index],
+                    );
+                  },
+                  itemCount: gCubit.guessesEvaluated.length,
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return GuessRow(
+                      containerColor: AssetImages.guessGrey,
+                      guess: gCubit.guesses[6 - gCubit.guessesRemaining + index],
+                    );
+                  },
+                  itemCount: gCubit.guessesRemaining,
+                ),
+                Spacer(),
+                ArabicKeyboard(onKeyPress: _handleKeyPress),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: CustButton(
+                          text: "دخل",
+                          func: () {
+                            _handleKeyPress("دخل");
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 50),
+                      Expanded(
+                        child: CustButton(
+                          text: "امسح",
+                          func: () {
+                            _handleKeyPress("امسح");
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 50),
-            ArabicKeyboard(onKeyPress: _handleKeyPress),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: CustButton(
-                      text: "دخل",
-                      func: () {
-                        _handleKeyPress("دخل");
-                      },
-                    ),
-                  ),
-                  SizedBox(width: 50),
-                  Expanded(
-                    child: CustButton(
-                      text: "امسح",
-                      func: () {
-                        _handleKeyPress("امسح");
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            )
-          ],
-        ),
+          );
+        },
       ),
     );
   }

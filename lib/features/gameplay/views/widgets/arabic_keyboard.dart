@@ -8,8 +8,7 @@ class ArabicKeyboard extends StatelessWidget {
     ['ذ', 'ء', 'ؤ', 'ر', 'ى', 'ة', 'و', 'ز', 'ظ','د'],
   ];
   final Function(String) onKeyPress;
-
-  ArabicKeyboard({required this.onKeyPress});
+  ArabicKeyboard({super.key, required this.onKeyPress});
 
   @override
   Widget build(BuildContext context) {
